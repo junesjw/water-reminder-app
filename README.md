@@ -8,7 +8,7 @@ This project is a customizable MFC application designed to remind users to drink
 - Receive reminders through WhatsApp messages.
 - Customize message content.
 - Start and Stop the reminders with a single click.
-- Secure management of sensitive information using config files.
+- Secure management of sensitive information using environmental variables.
 
 ## Setup and Installation
 1. **Obtain API Key**
@@ -22,15 +22,17 @@ git clone https://github.com/junesjw/water-reminder-app.git
 - Open the project in Visual Studio.
 - Build the project to produce the executable.
 
-4. **Configure the Application**
-- Place the `config.txt` file in the same directory as the executable.
-- The `config.txt` should have the following format:
-  ```
-  phone=[YourPhoneNumber]
-  apikey=[YourApiKey]
-  ```
-- Replace `[YourPhoneNumber]` with your phone number including the country code (e.g. +34123123123).
-- Replace `[YourApiKey]` with your obtained API key.
+4. **Setup Environment Variables (Optional)**
+Users need to set up the PHONE_NUMBER and API_KEY environment variables manually.
+- For Windows, users can set up environment variables through System Properties -> Advanced -> Environment Variables.
+- Users can verify the set environment variables using the command prompt with the commands:
+
+```sh
+echo %PHONE_NUMBER%
+echo %API_KEY%
+```
+
+The fields will now be filled on application startup.
 
 5. **Run the Application**
 - Execute the application.
@@ -50,15 +52,15 @@ git clone https://github.com/junesjw/water-reminder-app.git
 - Messages will continue until the application is closed or stopped.
 
 ## Security Considerations
-Sensitive information such as phone numbers and API keys are securely managed using config files. However, ensure the config file is properly secured and not easily accessible to unauthorized users.
+Sensitive information such as phone numbers and API keys are securely managed using environmental variables. However, ensure the variables are properly secured and not easily accessible to unauthorized users.
 
 ## ToDo List
-- **Enhance User Interface:** Improve the aesthetics and user experience of the application's GUI.
-- **Customizable Messages:** Implement functionality allowing users to customize the content of reminder messages.
+- ~~**Enhance User Interface:** Improve the aesthetics and user experience of the application's GUI.~~
+- ~~**Customizable Messages:** Implement functionality allowing users to customize the content of reminder messages.~~
 - **Specific Date/Time Reminders:** Extend the app to enable setting up reminders for specific dates and times.
 - **Robust Error Handling:** Introduce more comprehensive error handling to manage potential issues and enhance application stability.
 - **Server-Based Reminders on Linux:** Develop functionality to set up reminders that can run on a Linux server, eliminating the need for the application to be running in the background.
-- **Configuration through GUI:** Allow users to input API key and phone number directly through the application’s graphical interface, streamlining the setup process.
+- ~~**Configuration through GUI:** Allow users to input API key and phone number directly through the application’s graphical interface, streamlining the setup process.~~
 
 ## License
 This project is licensed under the MIT License.
