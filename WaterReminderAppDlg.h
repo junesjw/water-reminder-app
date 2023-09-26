@@ -32,9 +32,13 @@ protected:
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	void SendWhatsAppMessage(UINT_PTR nIDEvent);
-	bool CWaterReminderAppDlg::ReadConfig(CString& phoneNumber, CString& apiKey);
+	bool CWaterReminderAppDlg::ReadEnvironmentVariables(CString& phoneNumber, CString& apiKey);
 public:
 	CEdit intervalEditCtrl;
 	afx_msg void OnBnClickedButtonStart();
 	afx_msg void OnBnClickedButtonStop();
+	afx_msg void OnStnClickedStaticInfo();
+	CEdit reminderMessageEditCtrl;
+	CEdit apiKeyEditCtrl;
+	CEdit phoneNumberEditCtrl;
 };

@@ -1,7 +1,3 @@
-
-// WaterReminderAppDlg.cpp: Implementierungsdatei
-//
-
 #include "pch.h"
 #include "framework.h"
 #include "WaterReminderApp.h"
@@ -14,12 +10,7 @@
 #define new DEBUG_NEW
 #endif
 
-
-// CWaterReminderAppDlg-Dialogfeld
-
-
-
-CWaterReminderAppDlg::CWaterReminderAppDlg(CWnd* pParent /*=nullptr*/)
+CWaterReminderAppDlg::CWaterReminderAppDlg(CWnd* pParent)
 	: CDialogEx(IDD_WATERREMINDERAPP_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -29,6 +20,9 @@ void CWaterReminderAppDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_INTERVAL_EDIT, intervalEditCtrl);
+	DDX_Control(pDX, IDC_REMINDER_MESSAGE, reminderMessageEditCtrl);
+	DDX_Control(pDX, IDC_API_KEY, apiKeyEditCtrl);
+	DDX_Control(pDX, IDC_PHONE_NUMBER, phoneNumberEditCtrl);
 }
 
 BEGIN_MESSAGE_MAP(CWaterReminderAppDlg, CDialogEx)
@@ -39,44 +33,36 @@ BEGIN_MESSAGE_MAP(CWaterReminderAppDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTONSTOP, &CWaterReminderAppDlg::OnBnClickedButtonStop)
 END_MESSAGE_MAP()
 
-
-// CWaterReminderAppDlg-Meldungshandler
-
 BOOL CWaterReminderAppDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
+	SetIcon(m_hIcon, TRUE);
+	SetIcon(m_hIcon, FALSE);
+	SetWindowLong(this->m_hWnd, GWL_STYLE, GetWindowLong(this->m_hWnd, GWL_STYLE) | WS_SYSMENU);
 
-	// Symbol für dieses Dialogfeld festlegen.  Wird automatisch erledigt
-	//  wenn das Hauptfenster der Anwendung kein Dialogfeld ist
-	SetIcon(m_hIcon, TRUE);			// Großes Symbol verwenden
-	SetIcon(m_hIcon, FALSE);		// Kleines Symbol verwenden
+	CString phoneNumber, apiKey;
+	if (ReadEnvironmentVariables(phoneNumber, apiKey))
+	{
+		phoneNumberEditCtrl.SetWindowTextW(phoneNumber);
+		apiKeyEditCtrl.SetWindowTextW(apiKey);
+	}
 
-	// TODO: Hier zusätzliche Initialisierung einfügen
-
-	return TRUE;  // TRUE zurückgeben, wenn der Fokus nicht auf ein Steuerelement gesetzt wird
+	return TRUE;
 }
-
-// Wenn Sie dem Dialogfeld eine Schaltfläche "Minimieren" hinzufügen, benötigen Sie
-//  den nachstehenden Code, um das Symbol zu zeichnen.  Für MFC-Anwendungen, die das 
-//  Dokument/Ansicht-Modell verwenden, wird dies automatisch ausgeführt.
 
 void CWaterReminderAppDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // Gerätekontext zum Zeichnen
+		CPaintDC dc(this);
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
-
-		// Symbol in Clientrechteck zentrieren
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
 		GetClientRect(&rect);
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
-
-		// Symbol zeichnen
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -84,41 +70,34 @@ void CWaterReminderAppDlg::OnPaint()
 		CDialogEx::OnPaint();
 	}
 }
-
-// Die System ruft diese Funktion auf, um den Cursor abzufragen, der angezeigt wird, während der Benutzer
-//  das minimierte Fenster mit der Maus zieht.
 HCURSOR CWaterReminderAppDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-bool CWaterReminderAppDlg::ReadConfig(CString& phoneNumber, CString& apiKey)
+bool CWaterReminderAppDlg::ReadEnvironmentVariables(CString& phoneNumber, CString& apiKey)
 {
-	CStdioFile file;
-	if (!file.Open(_T("config.txt"), CFile::modeRead))
-		return false; // Return false if file could not be opened
+	char* pVal = nullptr;
+	size_t sz = 0;
 
-	CString strLine;
-	while (file.ReadString(strLine))
-	{
-		int separatorPos = strLine.Find('=');
-		if (separatorPos != -1)
-		{
-			CString key = strLine.Left(separatorPos);
-			CString value = strLine.Mid(separatorPos + 1);
-			if (key.CompareNoCase(_T("phone")) == 0)
-				phoneNumber = value;
-			else if (key.CompareNoCase(_T("apikey")) == 0)
-				apiKey = value;
-		}
-	}
+	if (_dupenv_s(&pVal, &sz, "PHONE_NUMBER") != 0 || pVal == nullptr)
+		return false;
 
-	file.Close();
+	phoneNumber = pVal;
+	free(pVal);
+
+	if (_dupenv_s(&pVal, &sz, "API_KEY") != 0 || pVal == nullptr)
+		return false;
+
+	apiKey = pVal;
+	free(pVal);
+
 	return true;
 }
 
 void CWaterReminderAppDlg::OnBnClickedButtonStart()
 {
+	CString phoneNumber, apiKey;
 	CString str = _T("");
 	intervalEditCtrl.GetWindowTextW(str);
 
@@ -130,12 +109,8 @@ void CWaterReminderAppDlg::OnBnClickedButtonStart()
 		return;
 	}
 
-	CString phoneNumber, apiKey;
-	if (!ReadConfig(phoneNumber, apiKey))
-	{
-		AfxMessageBox(_T("Could not read the config file."));
-		return;
-	}
+	phoneNumberEditCtrl.GetWindowTextW(phoneNumber);
+	apiKeyEditCtrl.GetWindowTextW(apiKey);
 
 	SetTimer(1, interval, NULL);
 }
@@ -159,17 +134,22 @@ void CWaterReminderAppDlg::SendWhatsAppMessage(UINT_PTR nIDEvent)
 {
 	if (nIDEvent == 1)
 	{
-		CString phoneNumber, apiKey;
+		CString phoneNumber, apiKey, reminderMessage, message, url;
+		phoneNumberEditCtrl.GetWindowTextW(phoneNumber);
+		apiKeyEditCtrl.GetWindowTextW(apiKey);
+		reminderMessageEditCtrl.GetWindowTextW(reminderMessage);
 
-		if (!ReadConfig(phoneNumber, apiKey))
+		if (phoneNumber.IsEmpty() || apiKey.IsEmpty())
 		{
-			AfxMessageBox(_T("Could not read the config file."));
+			AfxMessageBox(_T("Phone Number or API Key is empty."));
 			return;
 		}
 
-		CString message = _T("Drink some water!");
+		if (reminderMessage.IsEmpty())
+			message = _T("Drink some water!");
+		else
+			message = reminderMessage;
 
-		CString url;
 		url.Format(_T("https://api.callmebot.com/whatsapp.php?phone=%s&text=%s&apikey=%s"), phoneNumber, message, apiKey);
 
 		CInternetSession session(_T("WhatsApp Reminder"));
@@ -180,15 +160,11 @@ void CWaterReminderAppDlg::SendWhatsAppMessage(UINT_PTR nIDEvent)
 		}
 		catch (CInternetException* pEx)
 		{
-			// Handle exception here (e.g., show a message box)
 			pEx->Delete();
 		}
 
 		if (pFile)
 		{
-			// Optionally, read the response here if needed
-			// ...
-
 			pFile->Close();
 			delete pFile;
 		}
